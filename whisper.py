@@ -1,5 +1,5 @@
 import requests
-import testSoundCard
+import SpeechRecognition
 
 endpoint_url = "http://localhost:9000"
 
@@ -11,5 +11,5 @@ def transcribe(file_path, target_lang):
         return response.json()["text"]
 
 
-testSoundCard.record()
+SpeechRecognition.record()
 print(transcribe("MyRecording2.wav", "en"))
