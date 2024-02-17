@@ -1,7 +1,8 @@
 # TalkBox
 
-## testSoundCard.py
-The module <speech_recognition> will not be recognized in python until the below are imported.
+## Notes for testSpeechRecognition.py
+### Import issue
+The module **speech_recognition** will not be recognized in python until the below are imported.
     
     pip install SpeechRecognition
     pip install PyAudio
@@ -17,3 +18,10 @@ The module <speech_recognition> will not be recognized in python until the below
     pip install Translator
     brew install flac       # still works without running
     brew install portaudio  # still works without running
+
+### Method missing issue
+During the processing, the yellow underline will be recognizable for;
+    
+    # the below runs even with a yellow underline
+    print("You said: " + r.recognize_google(audio))
+Ignore the above, the code should still run.
