@@ -1,4 +1,5 @@
 import requests
+import testSoundCard
 
 endpoint_url = "http://localhost:9000"
 
@@ -10,4 +11,5 @@ def transcribe(file_path, target_lang):
         return response.json()["text"]
 
 
-print(transcribe("input.mp3", "en"))
+testSoundCard.record()
+print(transcribe("MyRecording2.wav", "en"))
