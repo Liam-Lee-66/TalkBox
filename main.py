@@ -1,5 +1,6 @@
 from whisper import transcribe
 from listener import record
+from tts import text_to_speech
 from time import time
 from time import sleep
 
@@ -30,10 +31,15 @@ def _split_for(input_: str, look_for: list[str]) -> list[str]:
 def run(printing_interval: time, translating_language: str):
     record()
 
+    # transcribed = transcribe('recorded.wav', translating_language)
+    # print(transcribed)
+    # text_to_speech(transcribed)
+
     transcribed = _split_for(transcribe('recorded.wav', translating_language), ['.', '?', '!'])
 
     for sentence in transcribed:
         print(sentence.strip())
+        text_to_speech(sentence.strip())
         sleep(printing_interval)
 
 
