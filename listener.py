@@ -15,4 +15,4 @@ def record() -> None:
     sounddevice.wait()
     write("recorded.wav", fs, record_voice)
 
-    print("Recording is done please check your folder to listen to the recording")
+    print("Recording is done please wait a moment for the prompt to process.")
