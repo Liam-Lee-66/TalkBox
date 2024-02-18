@@ -1,5 +1,6 @@
 from whisper import transcribe
 from listener import record
+from translator import translate
 from collections import deque
 from threading import Thread
 from time import time
@@ -25,13 +26,11 @@ class Scribe:
     def capture(self) -> None:
         # below is sample mp3
         transcribed = transcribe('recorded.wav', self.language)
-        for sentence in transcribed.split('.'):
-            printing = sentence.strip()
+        try:
+            self.queue.append(translate(transcribed, "ko"))
 
-            if len(printing) > 0 and printing[-1] != '.':
-                self.queue.append(printing + '.')
-            else:
-                self.queue.append(printing)
+        except ValueError:
+            pass
 
     def run(self) -> None:
         while self.active:
@@ -92,7 +91,10 @@ if __name__ == "__main__":
                 if talkBox.thread.is_alive():
                     talkBox.thread.join()
 
-            talkBox.caption += engine.dequeue()
+            sentence = engine.dequeue()
+
+            if sentence:
+                print(sentence)
 
     finally:
         print(talkBox.caption)

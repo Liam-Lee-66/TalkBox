@@ -15,4 +15,4 @@ def record(second: time) -> None:
     sounddevice.wait()
     Thread(target=write, args=["recorded.wav", fs, record_voice]).start()
 
-    print("Recording is done please check your folder to listen to the recording")
+    # print("Recording is done please check your folder to listen to the recording")
