@@ -100,22 +100,23 @@ class Scribe:
     def __init__(self, input_language: str, output_language: str) -> None:
         self.queue = deque()
         self.thread = None
-        self.recording_interval = 5
+        self.recording_interval = 4
         self.input_language = input_language
         self.output_language = output_language
         self.active = False
 
-    def _capture(self) -> None:
-        transcribed = transcribe('recorded.wav', self.input_language)
-        if transcribed:
-            phrases = _split_for(transcribed, ['.', '?', '!'])
-
-            for phrase in phrases:
+    def capture(self) -> None:
+        transcribed = _split_for(transcribe('recorded.wav', self.input_language), ['.', '?', '!'])
+        try:
+            for phrase in transcribed:
                 self.queue.append(translate(phrase, self.output_language))
+
+        except ValueError:
+            pass
 
     def run(self) -> None:
         while self.active:
-            self.thread = Thread(target=self._capture)
+            self.thread = Thread(target=self.capture)
             # records input audio and creates a mp3
             record(self.recording_interval)
             self.thread.start()
@@ -152,7 +153,7 @@ class Handler:
 if __name__ == "__main__":
     import keyboard
 
-    talkBox = Handler("ja", "EN-US")
+    talkBox = Handler("en", "ko")
 
     running = True
 
