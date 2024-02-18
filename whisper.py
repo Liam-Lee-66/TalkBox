@@ -8,4 +8,3 @@ def transcribe(file_path, target_lang):
         files = {"audio_file": infile}
         response = requests.post(f"{endpoint_url}/asr?task=transcribe&language={target_lang}&output=json", files=files)
         return response.json()["text"] if response else ""
-
