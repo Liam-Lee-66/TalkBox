@@ -14,6 +14,9 @@ def _split_for(input_: str, look_for: list[str]) -> list[str]:
     ['1.', '2?', '3!', '4/', '5_', '6']
     >>> _split_for(b, ['.', '?', '!', '/', '_', '`'])
     ['1.', '2?', '3!', '4/', '5_', '6`']
+    >>> c = 'uh'
+    >>> _split_for(c, ['.'])
+    ['uh']
     """
 
     returning = []
@@ -46,4 +49,4 @@ def run(printing_interval: time, inputting_language: str):
 
 
 if __name__ == "__main__":
-    run(1, 'ja')
+    run(1, 'ko')

@@ -7,7 +7,7 @@ def record() -> None:
     fs = 44100
 
     # Asking to enter the recording time
-    second = int(input("Enter the Recording Time in seonds: "))
+    second = int(input("Enter the Recording Time in seconds: "))
     print("Recording.....\n")
 
     # Record the voice
