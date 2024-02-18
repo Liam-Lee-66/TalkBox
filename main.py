@@ -3,7 +3,87 @@ from listener import record
 from translator import translate
 from collections import deque
 from threading import Thread
+from tts import text_to_speech
 from time import time
+
+
+_language_to_whisper_code = {
+    'Arabic': 'ar',
+    'Bulgarian': 'bg',
+    'Czech': 'cs',
+    'Danish': 'da',
+    'German': 'de',
+    'Greek': 'el',
+    'English': 'en',
+    'Spanish': 'es',
+    'Estonian': 'et',
+    'Finnish': 'fi',
+    'French': 'fr',
+    'Hungarian': 'hu',
+    'Indonesian': 'id',
+    'Italian': 'it',
+    'Japanese': 'ja',
+    'Korean': 'ko',
+    'Lithuanian': 'lt',
+    'Latvian': 'lv',
+    'Dutch': 'nl',
+    'Polish': 'pl',
+    'Portuguese': 'pt',
+    'Romanian': 'ro',
+    'Russian': 'ru',
+    'Slovak': 'sk',
+    'Slovenian': 'sl',
+    'Swedish': 'sv',
+    'Turkish': 'tr',
+    'Ukrainian': 'uk',
+    'Chinese (simplified)': 'zh'
+}
+_language_to_dl_code = {
+    'Arabic': 'AR',
+    'Bulgarian': 'BG',
+    'Czech': 'CS',
+    'Danish': 'DA',
+    'German': 'DE',
+    'Greek': 'EL',
+    'English': 'EN-US',
+    'Spanish': 'ES',
+    'Estonian': 'ET',
+    'Finnish': 'FI',
+    'French': 'FR',
+    'Hungarian': 'HU',
+    'Indonesian': 'ID',
+    'Italian': 'IT',
+    'Japanese': 'JA',
+    'Korean': 'KO',
+    'Lithuanian': 'LT',
+    'Latvian': 'LV',
+    'Norwegian (Bokmål)': 'NB',
+    'Dutch': 'NL',
+    'Polish': 'PL',
+    'Portuguese': 'PT',
+    'Romanian': 'RO',
+    'Russian': 'RU',
+    'Slovak': 'SK',
+    'Slovenian': 'SL',
+    'Swedish': 'SV',
+    'Turkish': 'TR',
+    'Ukrainian': 'UK',
+    'Chinese (simplified)': 'ZH'
+}
+
+
+def _split_for(input_: str, look_for: list[str]) -> list[str]:
+    returning = []
+    tracking = 0
+
+    for i in range(len(input_)):
+        if input_[i] in look_for:
+            returning.append(input_[tracking:i + 1])
+            tracking = i + 2
+
+    if tracking < len(input_):
+        returning.append(input_[tracking:len(input_)])
+    return returning
 
 
 class Scribe:
@@ -13,21 +93,23 @@ class Scribe:
     queue: deque
     thread: Thread
     recording_interval: time
-    language: str
+    input_language: str
+    output_language: str
     active: bool
 
-    def __init__(self, language: str) -> None:
+    def __init__(self, input_language: str, output_language: str) -> None:
         self.queue = deque()
         self.thread = None
         self.recording_interval = 4
-        self.language = language
+        self.input_language = input_language
+        self.output_language = output_language
         self.active = False
 
     def capture(self) -> None:
-        # below is sample mp3
-        transcribed = transcribe('recorded.wav', self.language)
+        transcribed = _split_for(transcribe('recorded.wav', self.input_language), ['.', '?', '!'])
         try:
-            self.queue.append(translate(transcribed, "ko"))
+            for phrase in transcribed:
+                self.queue.append(translate(phrase, self.output_language))
 
         except ValueError:
             pass
@@ -43,28 +125,27 @@ class Scribe:
     def dequeue(self) -> str:
         if len(self.queue) > 0:
             return self.queue.popleft()
-        return ""
 
 
 class Handler:
     """
 
     """
-    caption: str
-    src_language: str
-    dst_language: str
+    translated_lst: list[str]
+    input_language: str
+    output_language: str
     thread: Thread
     scribeEngine: Scribe
 
-    def __init__(self, src_language, dst_language) -> None:
-        self.caption = ""
-        self.src_language = src_language
-        self.dst_language = dst_language
+    def __init__(self, input_language, output_language) -> None:
+        self.translated_lst = []
+        self.input_language = input_language
+        self.output_language = output_language
         self.scribeEngine = None
         self.thread = None
 
     def setup(self):
-        self.scribeEngine = Scribe(self.src_language)
+        self.scribeEngine = Scribe(self.input_language, self.output_language)
         self.scribeEngine.active = True
         self.thread = Thread(target=self.scribeEngine.run)
 
@@ -72,7 +153,7 @@ class Handler:
 if __name__ == "__main__":
     import keyboard
 
-    talkBox = Handler("en", "zh")
+    talkBox = Handler("en", "ko")
 
     running = True
 
@@ -94,7 +175,7 @@ if __name__ == "__main__":
             sentence = engine.dequeue()
 
             if sentence:
-                print(sentence)
+                print(f"{sentence}")
 
     finally:
-        print(talkBox.caption)
+        print(talkBox.translated_lst)

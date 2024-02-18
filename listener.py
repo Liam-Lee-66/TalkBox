@@ -14,5 +14,3 @@ def record(second: time) -> None:
     record_voice = sounddevice.rec(int(second * fs), samplerate=fs, channels=2)
     sounddevice.wait()
     Thread(target=write, args=["recorded.wav", fs, record_voice]).start()
-
-    # print("Recording is done please check your folder to listen to the recording")
