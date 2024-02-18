@@ -5,7 +5,7 @@ from threading import Thread
 from time import time
 
 
-class Handler:
+class Scribe:
     """
 
     """
@@ -47,31 +47,52 @@ class Handler:
         return ""
 
 
+class Handler:
+    """
+
+    """
+    caption: str
+    src_language: str
+    dst_language: str
+    thread: Thread
+    scribeEngine: Scribe
+
+    def __init__(self, src_language, dst_language) -> None:
+        self.caption = ""
+        self.src_language = src_language
+        self.dst_language = dst_language
+        self.scribeEngine = None
+        self.thread = None
+
+    def setup(self):
+        self.scribeEngine = Scribe(self.src_language)
+        self.scribeEngine.active = True
+        self.thread = Thread(target=self.scribeEngine.run)
+
+
 if __name__ == "__main__":
     import keyboard
 
-    caption = ""
-
-    primary_engine = Handler("en")
-    primary_engine.active = True
+    talkBox = Handler("en", "zh")
 
     running = True
 
-    main_thread = Thread(target=primary_engine.run)
     try:
-        main_thread.start()
+        talkBox.setup()
+        talkBox.thread.start()
+        engine = talkBox.scribeEngine
         while running:
             if keyboard.is_pressed("s"):
                 running = False
-                primary_engine.active = False
+                engine.active = False
 
-                if primary_engine.thread.is_alive():
-                    primary_engine.thread.join()
+                if talkBox.scribeEngine.thread.is_alive():
+                    engine.thread.join()
 
-                if main_thread.is_alive():
-                    main_thread.join()
+                if talkBox.thread.is_alive():
+                    talkBox.thread.join()
 
-            caption += primary_engine.dequeue()
+            talkBox.caption += engine.dequeue()
+
     finally:
-        print(primary_engine.queue)
-        print(caption)
+        print(talkBox.caption)
