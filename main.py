@@ -7,6 +7,8 @@ from tts import text_to_speech
 from time import time
 
 
+RECORDING_SECONDS = 5
+
 _language_to_whisper_code = {
     'Arabic': 'ar',
     'Bulgarian': 'bg',
@@ -100,7 +102,7 @@ class Scribe:
     def __init__(self, input_language: str, output_language: str) -> None:
         self.queue = deque()
         self.thread = None
-        self.recording_interval = 5
+        self.recording_interval = RECORDING_SECONDS
         self.input_language = input_language
         self.output_language = output_language
         self.active = False
@@ -152,7 +154,7 @@ class Handler:
 if __name__ == "__main__":
     import keyboard
 
-    talkBox = Handler("ja", "EN-US")
+    talkBox = Handler("hi", "EN-US")
 
     running = True
 
