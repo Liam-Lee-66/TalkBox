@@ -1,46 +1,55 @@
-import pyaudio
-import wave
+import sounddevice
+from whisper import transcribe
+from collections import deque
+from scipy.io.wavfile import write
 from threading import Thread
-from time import time
-
-CHUNK = 1024
-FORMAT = pyaudio.paInt16
-CHANNELS = 2
-RATE = 44100
-WAVE_OUTPUT_FILENAME = "recorded.wav"
-
-p = pyaudio.PyAudio()
 
 
-def write(frames):
-    wf = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
-    wf.setnchannels(CHANNELS)
-    wf.setsampwidth(p.get_sample_size(FORMAT))
-    wf.setframerate(RATE)
-    wf.writeframes(b''.join(frames))
-    wf.close()
+class Listener:
+    """
 
+    """
+    queue: deque
+    thread: Thread
+    input_language: str
+    output_language: str
+    interval: float
+    filename: str
+    active: bool
 
-def record(seconds: time) -> None:
-    stream = p.open(format=FORMAT,
-                    channels=CHANNELS,
-                    rate=RATE,
-                    input=True,
-                    input_device_index=2,
-                    frames_per_buffer=CHUNK)
+    def __init__(self, input_language: str, output_language: str, interval: float, filename: str) -> None:
+        self.queue = deque()
+        self.thread = None
+        self.input_language = input_language
+        self.output_language = output_language
+        self.interval = interval
+        self.filename = filename
+        self.active = False
 
-    #print("* recording")
+    def _record(self) -> None:
+        fs = 44100
 
-    frames = []
+        print("Recording.....\n")
 
-    for i in range(0, int(RATE / CHUNK * seconds)):
-        data = stream.read(CHUNK)
-        frames.append(data)
+        record_voice = sounddevice.rec(int(self.interval * fs), samplerate=fs, channels=2)
+        thread = Thread(target=write, args=[self.filename, fs, record_voice])
+        sounddevice.wait()
 
-    #print("* done recording")
+        thread.start()
 
-    stream.stop_stream()
-    stream.close()
+        print("Stopped Recording.")
 
-    Thread(target=write, args=[frames, ]).start()
+    def _capture(self) -> None:
+        transcribed = transcribe(self.filename, self.input_language, self.interval)
+        if transcribed:
+            self.queue.append(transcribed)
 
+    def run(self) -> None:
+        while self.active:
+            self.thread = Thread(target=self._capture)
+            self._record()
+            self.thread.start()
+
+    def dequeue(self) -> str:
+        if len(self.queue) > 0:
+            return self.queue.popleft()
