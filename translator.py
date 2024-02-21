@@ -1,5 +1,5 @@
-import deepl
 from collections import deque
+import deepl
 
 
 class Translator:

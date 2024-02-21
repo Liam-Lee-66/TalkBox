@@ -1,6 +1,7 @@
 from threading import Thread
 from listener import Listener
 from translator import Translator
+from voicevox import VoiceVox
 
 INPUT_LANGUAGE = "en-us"
 OUTPUT_LANGUAGE = "ja"
@@ -15,9 +16,10 @@ class Handler:
     thread: Thread
     translation_history: list[str]
 
-    def __init__(self, listener: Listener, translator: Translator) -> None:
+    def __init__(self, listener: Listener, translator: Translator, voicevox: VoiceVox) -> None:
         self.listener = listener
         self.translator = translator
+        self.voicevox = voicevox
         self.thread = None
         self.translation_history = []
 
@@ -45,7 +47,9 @@ if __name__ == "__main__":
 
     stt_engine = Listener(INPUT_LANGUAGE)
     tl_engine = Translator(OUTPUT_LANGUAGE, DEEPL_KEY)
-    talk_box = Handler(stt_engine, tl_engine)
+    voicevox_engine = VoiceVox("14", 4.0, 1.5, 1.0, 1.0)
+
+    talk_box = Handler(stt_engine, tl_engine, voicevox_engine)
 
     talk_box.thread = Thread(target=stt_engine.run)
     running = True
@@ -72,5 +76,6 @@ if __name__ == "__main__":
 
         if translation:
             print(f"Translation: {translation}")
+            voicevox_engine.speak(translation)
 
 

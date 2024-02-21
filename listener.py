@@ -1,5 +1,4 @@
 from collections import deque
-from threading import Thread
 import speech_recognition as sr
 
 
