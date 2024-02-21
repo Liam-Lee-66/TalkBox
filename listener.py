@@ -1,8 +1,6 @@
-import sounddevice
-from whisper import transcribe
 from collections import deque
-from scipy.io.wavfile import write
 from threading import Thread
+import speech_recognition as sr
 
 
 class Listener:
@@ -10,46 +8,39 @@ class Listener:
 
     """
     queue: deque
-    thread: Thread
+    recognizer: sr.Recognizer
     input_language: str
-    output_language: str
     interval: float
-    filename: str
     active: bool
 
-    def __init__(self, input_language: str, output_language: str, interval: float, filename: str) -> None:
+    def __init__(self, input_language: str) -> None:
         self.queue = deque()
-        self.thread = None
+        self.recognizer = sr.Recognizer()
         self.input_language = input_language
-        self.output_language = output_language
-        self.interval = interval
-        self.filename = filename
         self.active = False
 
-    def _record(self) -> None:
-        fs = 44100
-
-        print("Recording.....\n")
-
-        record_voice = sounddevice.rec(int(self.interval * fs), samplerate=fs, channels=2)
-        thread = Thread(target=write, args=[self.filename, fs, record_voice])
-        sounddevice.wait()
-
-        thread.start()
-
-        print("Stopped Recording.")
-
-    def _capture(self) -> None:
-        transcribed = transcribe(self.filename, self.input_language, self.interval)
-        if transcribed:
-            self.queue.append(transcribed)
-
     def run(self) -> None:
-        while self.active:
-            self.thread = Thread(target=self._capture)
-            self._record()
-            self.thread.start()
+        # Use the default microphone as the audio source
+        with sr.Microphone() as source:
+            print("Listening...")
+
+            while self.active:
+                try:
+                    audio_data = self.recognizer.listen(source, timeout=1)  # Adjust timeout as needed
+
+                    # Perform speech-to-text
+                    text = self.recognizer.recognize_google(audio_data)
+
+                    self.queue.append(text)
+
+                except sr.exceptions.WaitTimeoutError:
+                    pass
+
+                except sr.UnknownValueError:
+                    pass  # Ignore if no speech is detected
+                except sr.RequestError as e:
+                    print(f"Speech recognition request failed: {e}")
 
     def dequeue(self) -> str:
-        if len(self.queue) > 0:
+        if self.queue:
             return self.queue.popleft()
