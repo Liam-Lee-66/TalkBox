@@ -25,7 +25,7 @@ class Listener:
 
             while self.active:
                 try:
-                    audio_data = self.recognizer.listen(source, timeout=1)  # Adjust timeout as needed
+                    audio_data = self.recognizer.listen(source, timeout=2)  # Adjust timeout as needed
 
                     # Perform speech-to-text
                     text = self.recognizer.recognize_google(audio_data)
@@ -33,10 +33,9 @@ class Listener:
                     self.queue.append(text)
 
                 except sr.exceptions.WaitTimeoutError:
-                    pass
-
+                    self.active = False
                 except sr.UnknownValueError:
-                    pass  # Ignore if no speech is detected
+                    self.active = False
                 except sr.RequestError as e:
                     print(f"Speech recognition request failed: {e}")
 

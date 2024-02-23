@@ -23,6 +23,25 @@ class Handler:
         self.thread = None
         self.translation_history = []
 
+    def update(self):
+        if not self.listener.active:
+            self.thread = Thread(target=stt_engine.run)
+            self.toggle()
+
+        transcription = self.listener.dequeue()
+
+        if transcription:
+            self.translator.transcriptions.append(transcription)
+
+        self.translator.process_transcriptions()
+
+        translation = self.translator.dequeue()
+
+        if translation:
+            print(f"{transcription} -> {translation}")
+            self.toggle()
+            self.voicevox.speak(translation)
+
     def toggle(self) -> None:
         if not self.listener.active:
             self._listener_on()
@@ -47,35 +66,23 @@ if __name__ == "__main__":
 
     stt_engine = Listener(INPUT_LANGUAGE)
     tl_engine = Translator(OUTPUT_LANGUAGE, DEEPL_KEY)
-    voicevox_engine = VoiceVox("14", 4.0, 1.5, 1.0, 1.0)
+    voicevox_engine = VoiceVox("17", 4.0, 1.5, 1.0, 1.0)
 
     talk_box = Handler(stt_engine, tl_engine, voicevox_engine)
 
-    talk_box.thread = Thread(target=stt_engine.run)
     running = True
 
-    talk_box.toggle()
-
     while running:
+        time.sleep(0.1)
+
+        talk_box.update()
 
         if keyboard.is_pressed("s"):
+            print("stopped")
             running = False
             talk_box.toggle()
 
-        time.sleep(0.1)
 
-        transcription = stt_engine.dequeue()
 
-        if transcription:
-            print(f"Transcription: {transcription}")
-            tl_engine.transcriptions.append(transcription)
-
-        tl_engine.process_transcriptions()
-
-        translation = tl_engine.dequeue()
-
-        if translation:
-            print(f"Translation: {translation}")
-            voicevox_engine.speak(translation)
 
 
