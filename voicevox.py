@@ -1,8 +1,14 @@
 import requests
 import winsound
+import json
 from urllib.parse import urlencode
 
 endpoint_url = "http://localhost:50021"
+
+with open("speakers.json", "rb") as infile:
+    speaker_json = json.loads(infile.readline())
+
+speaker_library = speaker_json["speakers"]
 
 
 class VoiceVox:
@@ -40,4 +46,9 @@ class VoiceVox:
             outfile.write(r.content)
 
         winsound.PlaySound("output.wav", winsound.SND_FILENAME)
+
+    def set_speaker(self, speaker_string: str, version_index: int = 0) -> None:
+        self.speaker_id = speaker_library[speaker_string][version_index]
+
+
 
